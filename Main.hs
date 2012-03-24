@@ -40,7 +40,9 @@ main = go ""
     go etag = do
       (e, r) <- update etag
       forM_ r (L.writeFile jsonFile . encode . parseMany)
-      threadDelay 1000000
+
+      -- sleep for 60 seconds
+      threadDelay 60000000
       go e
 
     update :: Ascii -> IO (Ascii, Maybe L.ByteString)
