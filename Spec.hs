@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
 module Spec (main, spec) where
 
 import           Test.Hspec.ShouldBe
@@ -9,7 +10,6 @@ import qualified Data.Map as Map
 import           Data.ByteString.Lazy.Char8 ()
 import           Data.Aeson.Generic
 
-import           Package
 import           Main hiding (main)
 
 main :: IO ()
@@ -18,15 +18,12 @@ main = hspecX spec
 spec :: Specs
 spec = do
   describe "encode" $ do
-    it "converts a Package to JSON" $ do
-      encode (Package "hspec" "0.9.2") `shouldBe` "{\"name\":\"hspec\",\"version\":\"0.9.2\"}"
-
     it "converts a package index to JSON" $ do
       encode (Map.fromList [("foo", "0.1"), ("bar", "0.2"), ("baz", "0.3")] :: Map String String)
         `shouldBe` "{\"foo\":\"0.1\",\"bar\":\"0.2\",\"baz\":\"0.3\"}"
 
   describe "parse" $ do
-    it "parses a Package" $ do
+    it "parses a line from Hackage upload log" $ do
       parse "Sun Mar 18 05:12:30 UTC 2012 SimonHengel hspec 0.9.2" `shouldBe` ("hspec", "0.9.2")
 
   describe "parseMany" $ do

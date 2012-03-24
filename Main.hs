@@ -6,9 +6,6 @@ import qualified Data.ByteString.Lazy as LB
 
 import           Data.Aeson.Generic
 
-import           Package hiding (name, version)
-import qualified Package
-
 parse :: String -> (String, String)
 parse input = case (reverse . words) input of
   version : name : _ -> (name, version)
@@ -23,6 +20,7 @@ parseMany input = foldr f Map.empty (lines input)
         g _                          = Just version
         (name, version) = parse s
 
+main :: IO ()
 main = do
   input <- readFile "log"
   let packages = parseMany input
