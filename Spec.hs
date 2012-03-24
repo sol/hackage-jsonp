@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
-module Spec (main, spec) where
+module Main (main, spec) where
 
 import           Test.Hspec.ShouldBe
 import           Data.String.Builder
@@ -11,7 +11,7 @@ import qualified Data.Map as Map
 import           Data.ByteString.Lazy.Char8 ()
 import           Data.Aeson.Generic
 
-import           Main hiding (main)
+import           Parse
 
 main :: IO ()
 main = hspecX spec
