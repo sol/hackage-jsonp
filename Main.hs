@@ -1,18 +1,76 @@
-module Main where
+{-# LANGUAGE OverloadedStrings #-}
+module Main (
+  main
 
+-- exported for testing
+, parse
+, parseMany
+) where
+
+import           Data.Foldable (forM_)
+import           System.IO (hPutStrLn, stderr)
+import           System.Time (getClockTime)
+import           Control.Concurrent (threadDelay)
 import           Data.Map   (Map)
 import qualified Data.Map as Map
-import qualified Data.ByteString.Lazy as LB
-
+import qualified Data.ByteString.Lazy.Char8 as L
+import           Control.Monad.IO.Class
 import           Data.Aeson.Generic
+import           Data.Conduit
+import           Network.HTTP.Types
+import           Network.HTTP.Conduit
 
-parse :: String -> (String, String)
-parse input = case (reverse . words) input of
+-- | Output file.
+jsonFile :: FilePath
+jsonFile = "log.json"
+
+-- | URL to Hackage upload log.
+uploadLogUrl :: String
+uploadLogUrl = "http://hackage.haskell.org/packages/archive/log"
+
+-- |
+-- Download the Hackage upload log, parse it, and write latest package versions
+-- into a JSON file.
+--
+-- Repeatedly check if the upload log has changed, and if so, regenerate the
+-- JSON file.
+main :: IO ()
+main = go ""
+  where
+    go etag = do
+      (e, r) <- update etag
+      forM_ r (L.writeFile jsonFile . encode . parseMany)
+      threadDelay 1000000
+      go e
+
+    update :: Ascii -> IO (Ascii, Maybe L.ByteString)
+    update etag = withManager $ \manager -> do
+      e <- getEtag manager
+      if etag == e
+        then do
+          logInfo "nothing changed"
+          return (e, Nothing)
+        else do
+          logInfo "updating"
+          r <- getLog manager
+          logInfo "updating done"
+          (return . fmap Just) r
+
+-- | Write a log message to stderr.
+logInfo :: MonadIO m => String -> m ()
+logInfo msg = liftIO $ do
+  t <- getClockTime
+  hPutStrLn stderr (show t ++ ": " ++ msg)
+
+-- | Parse package name and version from a Hackage upload log line.
+parse :: L.ByteString -> (L.ByteString, L.ByteString)
+parse input = case (reverse . L.words) input of
   version : name : _ -> (name, version)
   _                  -> error ("invalid input: " ++ show input)
 
-parseMany :: String -> Map String String
-parseMany input = foldr f Map.empty (lines input)
+-- | Parse Hackage upload log, and store latest package versions in a map.
+parseMany :: L.ByteString -> Map L.ByteString L.ByteString
+parseMany input = foldr f Map.empty (L.lines input)
   where
     f s = Map.alter g name
       where
@@ -20,8 +78,25 @@ parseMany input = foldr f Map.empty (lines input)
         g _                          = Just version
         (name, version) = parse s
 
-main :: IO ()
-main = do
-  input <- readFile "log"
-  let packages = parseMany input
-  LB.writeFile "log.json" (encode packages)
+-- | Get etag of Hackage upload log.
+getEtag :: Manager -> ResourceT IO Ascii
+getEtag manager = do
+  Response _ _ header _ <- httpLbs logRequest {method = "HEAD"} manager
+  return (etagHeader header)
+
+-- | Get Hackage upload log.
+getLog :: Manager -> ResourceT IO (Ascii, L.ByteString)
+getLog manager = do
+  Response _ _ header body <- httpLbs logRequest manager
+  return (etagHeader header, body)
+
+-- | Get etag from headers.
+--
+-- Fail with `error`, if there is no etag.
+etagHeader :: ResponseHeaders -> Ascii
+etagHeader = maybe (error "etagHeader: no etag!") id . lookup "etag"
+
+logRequest :: Request t
+logRequest = req {redirectCount = 0}
+  where
+    req = maybe (error $ "logRequest: invalid URL " ++ show uploadLogUrl) id (parseUrl uploadLogUrl)
