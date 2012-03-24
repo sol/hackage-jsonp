@@ -6,4 +6,4 @@ import           Data.Data
 data Package = Package {
   name    :: String
 , version :: String
-} deriving (Data, Typeable)
+} deriving (Eq, Show, Data, Typeable)
