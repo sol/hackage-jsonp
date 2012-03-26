@@ -1,6 +1,6 @@
 # About
 
-> Parse the [Hackage][] upload log and write the latest version of each package
+> Parse [Hackage][] upload log and write the latest version of each package
 > into a [JSONP][] file.
 
 An up-to-date version is repeatedly generated at
