@@ -8,7 +8,7 @@ module Main (
 ) where
 
 import           Data.Foldable (forM_)
-import           System.IO (hPutStrLn, stderr)
+import           System.IO (hPutStrLn, stderr, withFile, IOMode(..))
 import           System.Time (getClockTime)
 import           Control.Concurrent (threadDelay)
 import qualified Data.ByteString.Lazy.Char8 as L
@@ -30,9 +30,10 @@ uploadLogUrl = "http://hackage.haskell.org/packages/archive/log"
 
 -- | Parse given data, and write it as JSONP.
 writeJSONP :: L.ByteString -> IO ()
-writeJSONP = L.writeFile file . addPadding . encode . parseMany
-  where
-    addPadding = L.append "hackagePackageVersions="
+writeJSONP input = withFile file WriteMode $ \h -> do
+  L.hPut h "hackagePackageVersionsCallback("
+  L.hPut h (encode . parseMany $ input)
+  L.hPut h ");"
 
 -- |
 -- Download the Hackage upload log, parse it, and write latest package versions
