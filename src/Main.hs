@@ -22,7 +22,7 @@ import           Parse
 
 -- | Output file.
 fileName :: FilePath
-fileName = "hackage-package-versions"
+fileName = "latest-package-versions"
 
 -- | URL to Hackage upload log.
 uploadLogUrl :: String
