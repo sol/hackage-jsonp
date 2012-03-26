@@ -1,15 +1,45 @@
 # About
 
-> Parse [Hackage][] upload log and write the latest version of each package
-> into a [JSONP][] file.
+> Parse the [Hackage][] upload log and write the latest version of each package
+> into a JSON/[JSONP][] file.
 
-An up-to-date version is repeatedly generated at
-<http://www.typeful.net/~tbot/hackage-package-versions.jsonp>.  The callback is
-hard-coded to `hackagePackageVersionsCallback`.
+Up-to-date versions of both JSON and JSONP are repeatedly generated at
+<http://www.typeful.net/~tbot/hackage/>.  The JSONP callback is hard-coded to
+`hackagePackageVersionsCallback`.
 
-## Example
+## Examples
 
-### `index.html`
+### Haskell (aeson/syb)
+
+```haskell
+import           Data.Maybe
+import qualified Data.Map as Map
+import           Network.URI
+import           Network.HTTP
+import           Data.Aeson.Generic
+
+url :: String
+url = "http://www.typeful.net/~tbot/hackage/latest-package-versions.json"
+
+-- | Return latest version of a package.
+--
+-- >>> getVersion "hspec"
+-- Just "0.9.2"
+getVersion :: String -> IO (Maybe String)
+getVersion name = do
+  r <- simpleHTTP request >>= getResponseBody
+  return (decode r >>= Map.lookup name)
+  where
+    request = (mkRequest GET . fromJust . parseURI) url
+```
+
+### HTML/JavaScript
+
+JSONP allows a javascript client to relax the same origin policy and retrieve
+the above JSON by providing the callback function
+`hackagePackageVersionsCallback`.
+
+#### `index.html`
 
 ```html
 <!DOCTYPE html>
@@ -28,14 +58,14 @@ hard-coded to `hackagePackageVersionsCallback`.
 </html>
 ```
 
-### `custom.js`
+#### `custom.js`
 
 ```javascript
 $(document).ready(function() {
 
   /* fetch latest packages versions, the result will be passed to
    * hackagePackageVersionsCallback(..) */
-  $.getScript("http://www.typeful.net/~tbot/hackage-package-versions.jsonp");
+  $.getScript("http://www.typeful.net/~tbot/hackage/latest-package-versions.jsonp");
 });
 
 function hackagePackageVersionsCallback(response) {
