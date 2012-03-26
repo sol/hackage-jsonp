@@ -1,7 +1,7 @@
 # About
 
 > Parse the [Hackage][] upload log and write the latest version of each package
-> into a JSON/[JSONP][] file.
+> into a JSON/JSONP file.
 
 Up-to-date versions of both JSON and JSONP are repeatedly generated at
 <http://www.typeful.net/~tbot/hackage/>.  The JSONP callback is hard-coded to
@@ -35,7 +35,7 @@ getVersion name = do
 
 ### HTML/JavaScript
 
-JSONP allows a javascript client to relax the same origin policy and retrieve
+[JSONP][] allows a javascript client to relax the same origin policy and retrieve
 the above JSON by providing the callback function
 `hackagePackageVersionsCallback`.
 
