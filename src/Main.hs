@@ -21,19 +21,24 @@ import           Network.HTTP.Conduit
 import           Parse
 
 -- | Output file.
-file :: FilePath
-file = "hackage-package-versions.jsonp"
+fileName :: FilePath
+fileName = "hackage-package-versions"
 
 -- | URL to Hackage upload log.
 uploadLogUrl :: String
 uploadLogUrl = "http://hackage.haskell.org/packages/archive/log"
 
--- | Parse given data, and write it as JSONP.
+-- | Parse given data, and write it as both JSON and JSONP.
 writeJSONP :: L.ByteString -> IO ()
-writeJSONP input = withFile file WriteMode $ \h -> do
-  L.hPut h "hackagePackageVersionsCallback("
-  L.hPut h (encode . parseMany $ input)
-  L.hPut h ");"
+writeJSONP input = do
+  withFile (fileName ++ ".jsonp") WriteMode $ \h -> do
+    L.hPut h "hackagePackageVersionsCallback("
+    L.hPut h json
+    L.hPut h ");"
+  withFile (fileName ++ ".json") WriteMode $ \h -> do
+    L.hPut h json
+  where
+    json = (encode . parseMany) input
 
 -- |
 -- Download the Hackage upload log, parse it, and write latest package versions
