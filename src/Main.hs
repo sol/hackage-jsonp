@@ -7,6 +7,7 @@ module Main (
 , parseMany
 ) where
 
+import           Control.Exception
 import           Data.Foldable (forM_)
 import           System.IO (hPutStrLn, stderr, withFile, IOMode(..))
 import           System.Time (getClockTime)
@@ -50,12 +51,26 @@ main :: IO ()
 main = go ""
   where
     go etag = do
-      (e, r) <- update etag
+      (e, r) <- tryUpdate etag
       forM_ r writeJSONP
 
       -- sleep for 60 seconds
       threadDelay 60000000
       go e
+
+    tryUpdate etag = do
+      update etag `catches` [
+        -- Re-throw AsyncException, otherwise execution will not terminate on
+        -- SIGINT (ctrl-c).  All AsyncExceptions are re-thrown (not just
+        -- UserInterrupt) because all of them indicate severe conditions and
+        -- should not occur during normal operation.
+        Handler (\e -> throw (e :: AsyncException)),
+
+        Handler (\e -> do
+          logError $ show (e :: SomeException)
+          return (etag, Nothing)
+          )
+        ]
 
     update :: Ascii -> IO (Ascii, Maybe L.ByteString)
     update etag = withManager $ \manager -> do
@@ -75,6 +90,10 @@ logInfo :: MonadIO m => String -> m ()
 logInfo msg = liftIO $ do
   t <- getClockTime
   hPutStrLn stderr (show t ++ ": " ++ msg)
+
+-- | Write a log message to stderr.
+logError :: MonadIO m => String -> m ()
+logError = logInfo . ("ERROR: " ++)
 
 -- | Get etag of Hackage upload log.
 getEtag :: Manager -> ResourceT IO Ascii
