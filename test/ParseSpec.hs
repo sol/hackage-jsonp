@@ -39,5 +39,6 @@ spec = do
       parseMany . fromString . build $ do
         "Sun Mar 18 05:12:30 UTC 2012 SimonHengel hspec 0.0.2"
         "Sun Mar 18 05:12:30 UTC 2012 SimonHengel hspec 0.9.2"
+        "Sun Mar 18 05:12:30 UTC 2012 SimonHengel hspec 0.11.0"
         "Sun Mar 18 05:12:30 UTC 2012 SimonHengel hspec 0.0.3"
-      `shouldBe` Map.fromList [("hspec", "0.9.2")]
+      `shouldBe` Map.fromList [("hspec", "0.11.0")]

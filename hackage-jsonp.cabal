@@ -25,6 +25,7 @@ executable hackage-jsonp
     , conduit
     , http-conduit
     , http-types
+    , Cabal
 
 test-suite spec
   type:
@@ -45,6 +46,7 @@ test-suite spec
     , conduit
     , http-conduit
     , http-types
+    , Cabal
 
     -- test suite specific
     , stringbuilder
