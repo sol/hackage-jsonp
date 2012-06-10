@@ -1,11 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Main (
-  main
-
--- exported for testing
-, parse
-, parseMany
-) where
+module Main (main) where
 
 import           Control.Exception
 import           Data.Foldable (forM_)

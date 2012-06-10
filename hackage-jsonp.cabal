@@ -49,3 +49,4 @@ test-suite spec
     -- test suite specific
     , stringbuilder
     , hspec-shouldbe
+    , hspec-discover
