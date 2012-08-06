@@ -7,6 +7,7 @@ import           System.IO (hPutStrLn, stderr, withFile, IOMode(..))
 import           System.Time (getClockTime)
 import           Control.Concurrent (threadDelay)
 import qualified Data.ByteString.Lazy.Char8 as L
+import           Data.ByteString (ByteString)
 import           Control.Monad.IO.Class
 import           Data.Aeson.Generic
 import           Data.Conduit
@@ -66,7 +67,7 @@ main = go ""
           )
         ]
 
-    update :: Ascii -> IO (Ascii, Maybe L.ByteString)
+    update :: ByteString -> IO (ByteString, Maybe L.ByteString)
     update etag = withManager $ \manager -> do
       e <- getEtag manager
       if etag == e
@@ -90,13 +91,13 @@ logError :: MonadIO m => String -> m ()
 logError = logInfo . ("ERROR: " ++)
 
 -- | Get etag of Hackage upload log.
-getEtag :: Manager -> ResourceT IO Ascii
+getEtag :: Manager -> ResourceT IO ByteString
 getEtag manager = do
   Response _ _ header _ <- httpLbs logRequest {method = "HEAD"} manager
   return (etagHeader header)
 
 -- | Get Hackage upload log.
-getLog :: Manager -> ResourceT IO (Ascii, L.ByteString)
+getLog :: Manager -> ResourceT IO (ByteString, L.ByteString)
 getLog manager = do
   Response _ _ header body <- httpLbs logRequest manager
   return (etagHeader header, body)
@@ -104,7 +105,7 @@ getLog manager = do
 -- | Get etag from headers.
 --
 -- Fail with `error`, if there is no etag.
-etagHeader :: ResponseHeaders -> Ascii
+etagHeader :: ResponseHeaders -> ByteString
 etagHeader = maybe (error "etagHeader: no etag!") id . lookup "etag"
 
 logRequest :: Request t

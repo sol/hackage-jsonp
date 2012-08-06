@@ -49,6 +49,5 @@ test-suite spec
     , Cabal
 
     -- test suite specific
+    , hspec
     , stringbuilder
-    , hspec-shouldbe
-    , hspec-discover

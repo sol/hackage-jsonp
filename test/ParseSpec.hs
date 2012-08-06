@@ -2,7 +2,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
 module ParseSpec (main, spec) where
 
-import           Test.Hspec.ShouldBe
+import           Test.Hspec
 import           Data.String.Builder
 import           Data.String
 
@@ -14,7 +14,7 @@ import           Data.Aeson.Generic
 import           Parse
 
 main :: IO ()
-main = hspecX spec
+main = hspec spec
 
 spec :: Spec
 spec = do
