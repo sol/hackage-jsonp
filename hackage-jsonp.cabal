@@ -26,6 +26,10 @@ executable hackage-jsonp
     , http-conduit
     , http-types
     , Cabal
+    , tar
+    , zlib
+    , filepath
+    , directory
 
 test-suite spec
   type:
@@ -47,6 +51,10 @@ test-suite spec
     , http-conduit
     , http-types
     , Cabal
+    , tar
+    , zlib
+    , filepath
+    , directory
 
     -- test suite specific
     , hspec
