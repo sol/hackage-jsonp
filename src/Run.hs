@@ -4,6 +4,7 @@ module Run (main) where
 import           Control.Exception
 import           Data.Foldable (forM_)
 import           Data.List
+import           Data.Maybe
 import           System.IO (hPutStrLn, stderr, withFile, IOMode(..))
 import           System.Time (getClockTime)
 import           Control.Concurrent (threadDelay)
@@ -64,7 +65,7 @@ writePackagesJSON :: L.ByteString -> IO ()
 writePackagesJSON tarfile = do
     logInfo "writing packages files"
     createDirectoryIfMissing False pkgDirectoryName
-    foldEntriesM_ writePackageJSON (fail.show) . Tar.read . GZip.decompress $ tarfile
+    foldEntriesM_ writePackageJSON (logError.show) . Tar.read . GZip.decompress $ tarfile
     logInfo "writing packages files done"
 
 updateLink :: String -> PackageIdentifier -> IO ()
@@ -73,8 +74,8 @@ updateLink suffix pkg = do
     if exists
      then do
         target <- readSymbolicLink linkfile
-        let version = init . dropWhileEnd (/= '.') .  tail . dropWhile (/= '-') $ target
-        when (parseVersion (L.pack version) < packageVersion pkg) $ do
+        let pkg' = fromJust . simpleParse . init . dropWhileEnd (/= '.') $ target
+        when (pkgVersion pkg' < pkgVersion pkg) $ do
            removeFile linkfile
            createSymbolicLink thisfileName linkfile
      else do
