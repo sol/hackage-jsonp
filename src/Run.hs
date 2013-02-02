@@ -3,11 +3,13 @@ module Run (main) where
 
 import           Control.Exception
 import           Data.Foldable (forM_)
+import           Data.List
 import           System.IO (hPutStrLn, stderr, withFile, IOMode(..))
 import           System.Time (getClockTime)
 import           Control.Concurrent (threadDelay)
 import qualified Data.ByteString.Lazy.Char8 as L
 import           Data.ByteString (ByteString)
+import           Control.Monad (when)
 import           Control.Monad.IO.Class
 import qualified Data.Aeson
 import qualified Data.Aeson.Generic
@@ -18,6 +20,7 @@ import qualified Codec.Compression.GZip as GZip
 import qualified Codec.Archive.Tar as Tar
 import           System.FilePath
 import           System.Directory
+import           System.Posix.Files
 import           Distribution.Package
 import           Distribution.Text
 import           Distribution.PackageDescription.Parse
@@ -64,13 +67,34 @@ writePackagesJSON tarfile = do
     foldEntriesM_ writePackageJSON (fail.show) . Tar.read . GZip.decompress $ tarfile
     logInfo "writing packages files done"
 
+updateLink :: String -> PackageIdentifier -> IO ()
+updateLink suffix pkg = do
+    exists <- doesFileExist linkfile
+    if exists
+     then do
+        target <- readSymbolicLink linkfile
+        let version = init . dropWhileEnd (/= '.') .  tail . dropWhile (/= '-') $ target
+        when (parseVersion (L.pack version) < packageVersion pkg) $ do
+           removeFile linkfile
+           createSymbolicLink thisfileName linkfile
+     else do
+        createSymbolicLink thisfileName linkfile
+  where linkfile = pkgDirectoryName </> display (packageName pkg) ++ "." ++ suffix
+        thisfileName = display pkg ++ "." ++ suffix
+
 writePackageJSON :: Tar.Entry -> IO ()
+writePackageJSON e | "preferred-versions" <- Tar.entryPath e = return ()
 writePackageJSON e | Tar.NormalFile rawDesc _ <- Tar.entryContent e = do
     case parsePackageDescription (L.unpack rawDesc) of
         ParseFailed err -> do
-            hPutStrLn stderr $ "Parse error in " ++ Tar.entryPath e ++ ": " ++ show err           
+            logError $ "Parse error in " ++ Tar.entryPath e ++ ": " ++ show err           
         ParseOk _ desc -> do
+            when (null (display (packageId desc))) $ 
+                logError $ "Empty package name in " ++ Tar.entryPath e
+
             let fileName = pkgDirectoryName </> display (packageId desc)
+            updateLink "json" (packageId desc)
+            updateLink "jsonp" (packageId desc)
             writeJsonAndJsonp "hackageDataCallback" fileName (Data.Aeson.encode desc)
 writePackageJSON _ = return ()
 

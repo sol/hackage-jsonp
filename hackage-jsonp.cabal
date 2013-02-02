@@ -30,6 +30,7 @@ executable hackage-jsonp
     , zlib
     , filepath
     , directory
+    , unix
 
 test-suite spec
   type:
@@ -55,6 +56,7 @@ test-suite spec
     , zlib
     , filepath
     , directory
+    , unix
 
     -- test suite specific
     , hspec
