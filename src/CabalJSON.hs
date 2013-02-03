@@ -19,6 +19,8 @@ import Data.Aeson
 -- The derived instance is just too ugly here
 instance ToJSON Version where
     toJSON = toJSON . display
+instance ToJSON License where
+    toJSON = toJSON . display
 
 $(deriveToJSON id ''Language)
 $(deriveToJSON id ''KnownExtension)
@@ -33,7 +35,6 @@ $(deriveToJSON id ''BuildInfo)
 $(deriveToJSON id ''TestSuiteInterface)
 $(deriveToJSON id ''BenchmarkInterface)
 $(deriveToJSON id ''PackageIdentifier)
-$(deriveToJSON id ''License)
 $(deriveToJSON id ''CompilerFlavor)
 $(deriveToJSON id ''VersionRange)
 $(deriveToJSON id ''SourceRepo)
@@ -53,3 +54,4 @@ $(deriveToJSON id ''ConfVar)
 $(deriveToJSON id ''CondTree)
 $(deriveToJSON id ''GenericPackageDescription)
 -- $(deriveToJSON id ''Version)
+-- $(deriveToJSON id ''License)
