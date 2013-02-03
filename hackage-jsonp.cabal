@@ -10,7 +10,7 @@ cabal-version:    >= 1.8
 
 executable hackage-jsonp
   ghc-options:
-      -Wall -Werror
+      -Wall -Werror -fno-warn-orphans
   hs-source-dirs:
       src
   main-is:
@@ -36,7 +36,7 @@ test-suite spec
   type:
       exitcode-stdio-1.0
   ghc-options:
-      -Wall -Werror
+      -Wall -Werror -fno-warn-orphans
   hs-source-dirs:
       src, test
   main-is:
