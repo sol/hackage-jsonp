@@ -74,7 +74,7 @@ updateLink suffix pkg = do
     if exists
      then do
         target <- readSymbolicLink linkfile
-        let pkg' = fromJust . simpleParse . init . dropWhileEnd (/= '.') $ target
+        let pkg' = fromJust . simpleParse . init . (reverse . dropWhile (/= '.') . reverse) $ target
         when (pkgVersion pkg' < pkgVersion pkg) $ do
            removeFile linkfile
            createSymbolicLink thisfileName linkfile

@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, UndecidableInstances, TemplateHaskell, DefaultSignatures, DeriveGeneric, StandaloneDeriving #-}
+{-# LANGUAGE FlexibleInstances, UndecidableInstances, TemplateHaskell, StandaloneDeriving #-}
 
 -- | A quick and dirty instance for 'FromJSON GenericPackageDescription',
 -- created with template toolkit magic
