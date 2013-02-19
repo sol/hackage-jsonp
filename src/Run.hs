@@ -3,7 +3,6 @@ module Run (main) where
 
 import           Control.Exception
 import           Data.Foldable (forM_)
-import           Data.List
 import           Data.Maybe
 import           System.IO (hPutStrLn, stderr, withFile, IOMode(..))
 import           System.Time (getClockTime)
@@ -80,7 +79,7 @@ updateLink suffix pkg = do
            createSymbolicLink thisfileName linkfile
      else do
         createSymbolicLink thisfileName linkfile
-  where linkfile = pkgDirectoryName </> display (packageName pkg) ++ "." ++ suffix
+  where linkfile = pkgDirectoryName </> display (packageName pkg) </> display (packageName pkg) ++ "." ++ suffix
         thisfileName = display pkg ++ "." ++ suffix
 
 writePackageJSON :: Tar.Entry -> IO ()
@@ -93,7 +92,9 @@ writePackageJSON e | Tar.NormalFile rawDesc _ <- Tar.entryContent e = do
             when (null (display (packageId desc))) $ 
                 logError $ "Empty package name in " ++ Tar.entryPath e
 
-            let fileName = pkgDirectoryName </> display (packageId desc)
+            let dir = pkgDirectoryName </> display (packageName (packageId desc))
+            let fileName = dir </> display (packageId desc)
+            createDirectoryIfMissing False dir
             updateLink "json" (packageId desc)
             updateLink "jsonp" (packageId desc)
             writeJsonAndJsonp "hackageDataCallback" fileName (Data.Aeson.encode desc)
